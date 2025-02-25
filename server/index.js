@@ -17,7 +17,7 @@ try {
   console.log("Database connection Failed", error);
 }
 
-const server = app.listen(process.env.PORT,"0.0.0.0", () => {
+const server = app.listen(process.env.PORT, () => {
   console.log(`server is running on port : ${process.env.PORT}`);
 });
 
