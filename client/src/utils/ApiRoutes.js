@@ -1,5 +1,5 @@
 export const HOST =
-  "http://localhost:5000";
+  "https://chat-app-w0y5.onrender.com";
 
 const AUTH_ROUTE = `${HOST}/api/auth`;
 const MESSAGES_ROUTE = `${HOST}/api/messages`;
