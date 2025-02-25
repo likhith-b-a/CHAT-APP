@@ -2,7 +2,19 @@ import express from "express";
 import cors from "cors";
 
 const app = express();
-app.use(cors({ origin: "https://chat-app-likhith-b-as-projects-29e9bf6a.vercel.app" })); // Allow all origins (temporary)
+
+const allowedOrigins = process.env.CORS_ORIGINS?.split(",");
+
+app.use(cors({
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+  }));
 
 
 app.use(express.json());
