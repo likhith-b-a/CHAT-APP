@@ -1,5 +1,4 @@
-export const HOST =
-  "https://chat-app-w0y5.onrender.com";
+export const HOST = process.env.HOST;
 
 const AUTH_ROUTE = `${HOST}/api/auth`;
 const MESSAGES_ROUTE = `${HOST}/api/messages`;
