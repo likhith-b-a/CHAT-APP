@@ -27,6 +27,7 @@ function Main() {
       voiceCall,
       incomingVoiceCall,
       incomingVideoCall,
+      messages,
     },
     dispatch,
   } = useStateProvider();
@@ -43,21 +44,7 @@ function Main() {
 
   useEffect(() => {
     if (socket.current && !socketEvent) {
-      socket.current.on("msg-recieve", (data) => {
-        console.log("message");
-        console.log(data, currentChatUser);
-        console.log(data.from === currentChatUser?._id);
-        if (currentChatUser?._id === data.from) {
-          dispatch({
-            type: reducerCases.ADD_MESSAGE,
-            newMessage: {
-              ...data.message,
-            },
-          });
-        }
-      });
       setSocketEvent(true);
-
       socket.current.on("incoming-voice-call", ({ from, roomId, callType }) => {
         dispatch({
           type: reducerCases.SET_INCOMING_VOICE_CALL,
@@ -66,7 +53,7 @@ function Main() {
       });
 
       socket.current.on("incoming-video-call", ({ from, roomId, callType }) => {
-        console.log({...from})
+        console.log({ ...from });
         dispatch({
           type: reducerCases.SET_INCOMING_VIDEO_CALL,
           incomingVideoCall: { ...from, roomId, callType },
@@ -84,12 +71,87 @@ function Main() {
           type: reducerCases.END_CALL,
         });
       });
+
+      socket.current.on("disconnection", () => {
+        setSocketEvent(false);
+      });
     }
-  }, [socket.current, currentChatUser]);
+  }, [socket.current]);
+
+  useEffect(() => {
+    if (!socket.current) return;
+    socket.current.off("msg-recieve");
+    socket.current.on("msg-recieve", (data) => {
+      if (currentChatUser?._id === data.from) {
+
+        socket.current.emit("read-msg", {
+          message: data.message,
+        });
+        
+        dispatch({
+          type: reducerCases.ADD_MESSAGE,
+          newMessage: {
+            ...data.message,
+          },
+        });
+      }
+    });
+
+    if (currentChatUser) {
+      socket.current.emit("message-read", {
+        from: userInfo._id,
+        to: currentChatUser._id,
+      });
+    }
+  }, [currentChatUser]);
+
+  useEffect(() => {
+    if (!socket.current) return;
+    socket.current.off("message-read");
+    socket.current.on("message-read", ({ from }) => {
+      console.log("Inside listener");
+
+      const updatedMessages = messages.map((msg) =>
+        msg.reciever.toString() === from
+          ? { ...msg, messageStatus: "read" }
+          : msg
+      );
+
+      console.log(updatedMessages);
+
+      dispatch({
+        type: reducerCases.SET_MESSAGES,
+        messages: updatedMessages,
+      });
+    });
+  }, [messages]);
 
   useEffect(() => {
     if (redirectLogin) router.push("/login");
   }, [redirectLogin]);
+
+  // useEffect(() => {
+  //   if (socket.current) {
+  //     console.log("📡 Listening for messages-read event...");
+
+  //     socket.current.on("message-read", ({ from }) => {
+  //       console.log(
+  //         `✅ Received "messages-read" event for messages from ${from}`
+  //       );
+
+  //       dispatch({
+  //         type: reducerCases.UPDATE_MESSAGE_STATUS,
+  //         payload: { from, status: "read" },
+  //       });
+  //     });
+  //   }
+
+  //   return () => {
+  //     if (socket.current) {
+  //       socket.current.off("message-read");
+  //     }
+  //   };
+  // }, []);
 
   useEffect(() => {
     const getMessages = async () => {
