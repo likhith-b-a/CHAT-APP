@@ -8,6 +8,7 @@ import { uploadOnCloudinary } from "../utils/cloudinary.js";
 export const addMesssage = asyncHandler(async (req, res) => {
   const { message, from, to } = req.body;
   const getUser = onlineUsers.get(to);
+  
   if (message && from && to) {
     const newMessage = await Message.create({
       sender: from,
@@ -45,10 +46,11 @@ export const getMessages = asyncHandler(async (req, res) => {
     }
   });
 
-  await Message.updateMany(
-    { _id: { $in: unreadMessages } },
-    { $set: { messageStatus: "read" } }
-  );
+  // await Message.updateMany(
+  //   { _id: { $in: unreadMessages } },
+  //   { $set: { messageStatus: "read" } }
+  // );
+
 
   res
     .status(200)
