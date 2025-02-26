@@ -20,13 +20,14 @@ try {
   console.log("Database connection Failed", error);
 }
 
-const server = app.listen(process.env.PORT, "0.0.0.0", () => {
+
+const server = app.listen(process.env.PORT, () => {
   console.log(`server is running on port : ${process.env.PORT}`);
 });
 
 const io = new Server(server, {
   cors: {
-    origin: "*",
+    origin: "https://chat-app-likhith-b-as-projects-29e9bf6a.vercel.app",
   },
 });
 
