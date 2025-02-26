@@ -13,16 +13,6 @@ const router = Router();
 router.route("/addMessage").post(addMesssage);
 router.route("/getMessages/:from/:to").get(getMessages);
 
-// router.route("/add-image-message").post(
-//   upload.fields([
-//     {
-//       name: "image",
-//       maxCount: 1,
-//     },
-//   ]),
-//   addImageMessage
-// );
-
 router.route("/add-image-message").post(
   upload.single("image"),
   addImageMessage
