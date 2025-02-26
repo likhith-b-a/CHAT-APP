@@ -94,14 +94,13 @@ export const addImageMessage = asyncHandler(async (req, res) => {
 export const addAudioMessage = asyncHandler(async (req, res) => {
   const { from, to } = req.query;
 
-  const LocalPath = req.files?.audio?.[0]?.path;
-  if (!LocalPath) {
+  if (!req.file) {
     throw new ApiError(400, "Audio is missing");
   }
-
-  const audio = await uploadOnCloudinary(LocalPath);
+  
+  const audio = await uploadOnCloudinary(req.file.buffer);
   if (!audio) {
-    throw new ApiError(400, "Audio is missing");
+    throw new ApiError(400, "Audio upload Failed");
   }
 
   const newMessage = await Message.create({

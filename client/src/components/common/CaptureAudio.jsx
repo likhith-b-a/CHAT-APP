@@ -35,7 +35,6 @@ function CaptureAudio({ hide }) {
   useEffect(() => {
     if (!WaveSurfer || !waveFormRef.current) return;
 
-    console.log("WaveSurfer:", WaveSurfer);
     const wavesurfer = WaveSurfer.create({
       container: waveFormRef.current,
       waveColor: "#ccc",
