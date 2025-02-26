@@ -58,14 +58,16 @@ export const getMessages = asyncHandler(async (req, res) => {
 export const addImageMessage = asyncHandler(async (req, res) => {
   const { from, to } = req.query;
 
-  const LocalPath = req.files?.image?.[0]?.path;
-  if (!LocalPath) {
-    throw new ApiError(400, "Image is missing");
-  }
+  // const LocalPath = req.files?.image?.[0]?.path;
+  // if (!LocalPath) {
+  //   throw new ApiError(400, "Image is missing");
+  // }
+  // console.log(LocalPath)
 
-  const image = await uploadOnCloudinary(LocalPath);
+  // const image = await uploadOnCloudinary(LocalPath);
+  const image = await uploadOnCloudinary(req.file.buffer);
   if (!image) {
-    throw new ApiError(400, "Image is missing");
+    throw new ApiError(400, "Image upload failed");
   }
 
   const newMessage = await Message.create({
