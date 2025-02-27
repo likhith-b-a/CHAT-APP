@@ -4,7 +4,6 @@ import app from "./app.js";
 import { Server } from "socket.io";
 import { Message } from "./models/message.js";
 import { User } from "./models/user.js";
-import mongoose from "mongoose";
 
 dotenv.config({
   path: "./.env",
@@ -19,7 +18,6 @@ try {
 } catch (error) {
   console.log("Database connection Failed", error);
 }
-
 
 const server = app.listen(process.env.PORT, () => {
   console.log(`server is running on port : ${process.env.PORT}`);
@@ -39,6 +37,11 @@ io.on("connection", (socket) => {
   socket.on("add-user", async (userId) => {
     onlineUsers.set(userId, socket.id);
 
+    await User.findByIdAndUpdate(userId, { isOnline: true });
+
+    const users = Array.from(onlineUsers.keys());
+    io.emit("users-online", { users });
+
     const messagesToUpdate = await Message.find({
       _id: {
         $in: (
@@ -47,19 +50,13 @@ io.on("connection", (socket) => {
       },
       messageStatus: "sent",
     }).select("_id sender");
-
-    // Extract message IDs
     const messageIds = messagesToUpdate.map((msg) => msg._id);
-
-    // Update "sent" messages to "delivered"
     await Message.updateMany(
       { _id: { $in: messageIds } },
       { $set: { messageStatus: "delivered" } }
     );
-
     messagesToUpdate.forEach((msg) => {
       const senderSocket = onlineUsers.get(msg.sender.toString());
-
       if (senderSocket) {
         io.to(senderSocket).emit("update-message-status", {
           messageId: msg._id,
@@ -70,10 +67,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("send-msg", (data) => {
-    console.log(data);
-    console.log("Inside send-msg event listener");
     const sendUserSocket = onlineUsers.get(data.to);
-    console.log(sendUserSocket);
     if (sendUserSocket) {
       io.to(sendUserSocket).emit("msg-recieve", {
         from: data.from,
@@ -85,7 +79,6 @@ io.on("connection", (socket) => {
   socket.on("message-read", async ({ from, to }) => {
     try {
       // Find messages received by `from` user, sent by `to` user, that are not read yet
-      console.log(from, to);
       const updatedMessages = await Message.updateMany(
         {
           sender: to,
@@ -108,8 +101,8 @@ io.on("connection", (socket) => {
   socket.on("read-msg", async ({ message }) => {
     await Message.findByIdAndUpdate(message._id, { messageStatus: "read" });
     const senderSocket = onlineUsers.get(message.sender);
-    if(senderSocket){
-      io.to(senderSocket).emit("message-read",{from:message.reciever})
+    if (senderSocket) {
+      io.to(senderSocket).emit("message-read", { from: message.reciever });
     }
   });
 
@@ -123,7 +116,7 @@ io.on("connection", (socket) => {
       });
     }
   });
-  ("out-going-video-call");
+
   socket.on("outgoing-video-call", (data) => {
     const sendUserSocket = onlineUsers.get(data.to);
     if (sendUserSocket) {
@@ -156,23 +149,19 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("disconnect", () => {
-    //console.log(`User disconnected: ${socket.id}`);
-
-    // Find the user who disconnected
+  socket.on("disconnect", async () => {
     const userId = [...onlineUsers.entries()].find(
       ([, socketId]) => socketId === socket.id
     )?.[0];
-
-    // Remove user from online users map
     if (userId) {
       onlineUsers.delete(userId);
+      await User.findByIdAndUpdate(userId, {
+        isOnline: false,
+        lastSeen: new Date(),
+      });
+      const users = Array.from(onlineUsers.keys());
+      io.emit("users-offline", { users });
       console.log(`User ${userId} removed from online users`);
     }
-
-    socket.emit("disconnection");
-
-    // Broadcast updated online users list
-    // io.emit("update-online-users", Array.from(onlineUsers.keys()));
   });
 });

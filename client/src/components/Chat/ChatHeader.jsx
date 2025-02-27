@@ -6,14 +6,13 @@ import { BiSearchAlt2 } from "react-icons/bi";
 import { BsThreeDotsVertical } from "react-icons/bs";
 import { useStateProvider } from "@/context/StateContext";
 import { reducerCases } from "@/context/constants";
+import { calculateTime } from "@/utils/CalculateTime";
 
 function ChatHeader() {
   const {
     state: { currentChatUser },
     dispatch,
   } = useStateProvider();
-
-  // console.log(currentChatUser);
 
   const handleVoiceCall = () => {
     dispatch({
@@ -50,13 +49,22 @@ function ChatHeader() {
           <span className="text-primary-strong">
             {currentChatUser?.name || "Anonymous"}
           </span>
-          <span className="text-secondary text-sm">online/offline</span>
+          <span className="text-secondary text-sm">
+            {currentChatUser?.isOnline
+              ? "Online"
+              : `last seen at ${calculateTime(currentChatUser?.lastSeen)}`}
+          </span>
         </div>
       </div>
       <div className="flex gap-6">
-        <MdCall className="text-panel-header-icon cursor-pointer text-xl" 
-        onClick={handleVoiceCall}/>
-        <IoVideocam className="text-panel-header-icon cursor-pointer text-xl" onClick={handleVideoCall}/>
+        <MdCall
+          className="text-panel-header-icon cursor-pointer text-xl"
+          onClick={handleVoiceCall}
+        />
+        <IoVideocam
+          className="text-panel-header-icon cursor-pointer text-xl"
+          onClick={handleVideoCall}
+        />
         <BiSearchAlt2
           className="text-panel-header-icon cursor-pointer text-xl"
           onClick={() => {

@@ -101,6 +101,7 @@ function MessageBar() {
 
   const sendMessage = async () => {
     try {
+      setMessage("");
       const { data } = await axios.post(ADD_MESSAGE_ROUTE, {
         from: userInfo._id,
         to: currentChatUser._id,
@@ -118,7 +119,6 @@ function MessageBar() {
         },
         fromSelf: true,
       });
-      setMessage("");
     } catch (error) {
       console.log(error);
     }

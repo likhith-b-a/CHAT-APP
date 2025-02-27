@@ -17,15 +17,10 @@ function List() {
   useEffect(() => {
     const getContacts = async () => {
       try {
-        console.log(`${GET_INITIAL_CONTACTS_ROUTE}/${userInfo._id}`);
         const {
           data: { data },
         } = await axios.get(`${GET_INITIAL_CONTACTS_ROUTE}/${userInfo._id}`);
-
         const { onlineUsers, users } = data;
-
-        console.log(onlineUsers, users);
-
         dispatch({ type: reducerCases.SET_ONLINE_USERS, onlineUsers });
         dispatch({ type: reducerCases.SET_USER_CONTACTS, userContacts: users });
       } catch (error) {

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import ChatList from "./Chatlist/ChatList";
 import Empty from "./Empty";
-import { onAuthStateChanged, updateCurrentUser } from "firebase/auth";
+import { onAuthStateChanged } from "firebase/auth";
 import { firebaseAuth } from "@/utils/FirebaseConfig";
 import axios from "axios";
 import { CHECK_USER_ROUTE, GET_MESSAGES_ROUTE, HOST } from "@/utils/ApiRoutes";
@@ -54,6 +54,22 @@ function Main() {
         });
       });
 
+      socket.current.on("users-online", ({ users: onlineUsers }) => {
+        dispatch({
+          type: reducerCases.SET_ONLINE_USERS,
+          onlineUsers,
+          status: "online",
+        });
+      });
+
+      socket.current.on("users-offline", ({ users: onlineUsers }) => {
+        dispatch({
+          type: reducerCases.SET_ONLINE_USERS,
+          onlineUsers,
+          status: "offline",
+        });
+      });
+
       socket.current.on("incoming-voice-call", ({ from, roomId, callType }) => {
         dispatch({
           type: reducerCases.SET_INCOMING_VOICE_CALL,
@@ -62,7 +78,6 @@ function Main() {
       });
 
       socket.current.on("incoming-video-call", ({ from, roomId, callType }) => {
-        console.log({ ...from });
         dispatch({
           type: reducerCases.SET_INCOMING_VIDEO_CALL,
           incomingVideoCall: { ...from, roomId, callType },
@@ -79,10 +94,6 @@ function Main() {
         dispatch({
           type: reducerCases.END_CALL,
         });
-      });
-
-      socket.current.on("disconnection", () => {
-        setSocketEvent(false);
       });
     }
   }, [socket.current]);

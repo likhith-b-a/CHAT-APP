@@ -8,7 +8,7 @@ import { uploadOnCloudinary } from "../utils/cloudinary.js";
 export const addMesssage = asyncHandler(async (req, res) => {
   const { message, from, to } = req.body;
   const getUser = onlineUsers.get(to);
-  
+
   if (message && from && to) {
     const newMessage = await Message.create({
       sender: from,
@@ -46,12 +46,6 @@ export const getMessages = asyncHandler(async (req, res) => {
     }
   });
 
-  // await Message.updateMany(
-  //   { _id: { $in: unreadMessages } },
-  //   { $set: { messageStatus: "read" } }
-  // );
-
-
   res
     .status(200)
     .json(new ApiResponse(200, messages, "requested messages sent"));
@@ -59,14 +53,6 @@ export const getMessages = asyncHandler(async (req, res) => {
 
 export const addImageMessage = asyncHandler(async (req, res) => {
   const { from, to } = req.query;
-
-  // const LocalPath = req.files?.image?.[0]?.path;
-  // if (!LocalPath) {
-  //   throw new ApiError(400, "Image is missing");
-  // }
-  // console.log(LocalPath)
-
-  // const image = await uploadOnCloudinary(LocalPath);
   const image = await uploadOnCloudinary(req.file.buffer);
   if (!image) {
     throw new ApiError(400, "Image upload failed");
@@ -78,7 +64,6 @@ export const addImageMessage = asyncHandler(async (req, res) => {
     message: image.url,
     type: "image",
   });
-
 
   const sender = await User.findById(from);
   const reciever = await User.findById(to);
@@ -99,7 +84,7 @@ export const addAudioMessage = asyncHandler(async (req, res) => {
   if (!req.file) {
     throw new ApiError(400, "Audio is missing");
   }
-  
+
   const audio = await uploadOnCloudinary(req.file.buffer);
   if (!audio) {
     throw new ApiError(400, "Audio upload Failed");
@@ -111,7 +96,6 @@ export const addAudioMessage = asyncHandler(async (req, res) => {
     message: audio.url,
     type: "audio",
   });
-
 
   const sender = await User.findById(from);
   const reciever = await User.findById(to);
@@ -137,7 +121,7 @@ export const getInitaialContactsWithMessages = asyncHandler(
         select: "-updatedAt -__v",
         populate: {
           path: "sender reciever",
-          select: "name about email _id profilePicture",
+          select: "name about email _id profilePicture isOnline lastSeen",
         },
         options: { sort: { createdAt: -1 } },
       })
@@ -145,7 +129,10 @@ export const getInitaialContactsWithMessages = asyncHandler(
 
     if (!user) throw new ApiError(400, "No User Found");
 
-    const messages = [...user.sentMessages, ...user.recievedMessages];
+    const messages = [
+      ...(user.sentMessages || []),
+      ...(user.recievedMessages || []),
+    ];
 
     messages.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
@@ -153,20 +140,20 @@ export const getInitaialContactsWithMessages = asyncHandler(
     const messageStatusChange = [];
 
     messages.forEach((msg) => {
-      const isSender = msg.sender._id.toString() === from;
+      const isSender = msg.sender?._id.toString() === from;
       const calculatedId = (
-        isSender ? msg.reciever._id : msg.sender._id
-      ).toString();
+        isSender ? msg.reciever?._id : msg.sender?._id
+      )?.toString();
       if (msg.messageStatus === "sent") {
         messageStatusChange.push(msg.id);
       }
       if (!users.get(calculatedId)) {
         let user = {
           messageId: msg._id,
-          type:msg.type,
-          message:msg.message,
-          messageStatus:msg.messageStatus,
-          createdAt:msg.createdAt,
+          type: msg.type,
+          message: msg.message,
+          messageStatus: msg.messageStatus,
+          createdAt: msg.createdAt,
         };
         if (isSender) {
           user = { ...user, ...msg.reciever, totalUnreadMessages: 0 };
