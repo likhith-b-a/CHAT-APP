@@ -10,7 +10,7 @@ import ChatLIstItem from "./ChatLIstItem";
 
 function List() {
   const {
-    state: { userInfo, userContacts, filteredContacts },
+    state: { userInfo, userContacts, filteredContacts, messages},
     dispatch,
   } = useStateProvider();
 
@@ -28,7 +28,7 @@ function List() {
       }
     };
     getContacts();
-  }, [userInfo]);
+  }, [userInfo, messages]);
 
   return (
     <div className="bg-search-input-container-background flex-auto overflow-auto max-h-full custom-scrollbar">

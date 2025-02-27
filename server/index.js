@@ -149,6 +149,19 @@ io.on("connection", (socket) => {
     }
   });
 
+  socket.on("signout", async (userId) => {
+    if (userId) {
+      onlineUsers.delete(userId);
+      await User.findByIdAndUpdate(userId, {
+        isOnline: false,
+        lastSeen: new Date(),
+      });
+      const users = Array.from(onlineUsers.keys());
+      io.emit("users-offline", { users });
+      console.log(`User ${userId} removed from online users`);
+    }
+  });
+
   socket.on("disconnect", async () => {
     const userId = [...onlineUsers.entries()].find(
       ([, socketId]) => socketId === socket.id
