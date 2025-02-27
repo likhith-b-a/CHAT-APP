@@ -10,7 +10,7 @@ import ChatLIstItem from "./ChatLIstItem";
 
 function List() {
   const {
-    state: { userInfo, userContacts, filteredContacts },
+    state: { userInfo, userContacts, filteredContacts, messages},
     dispatch,
   } = useStateProvider();
 
