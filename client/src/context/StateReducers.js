@@ -34,15 +34,42 @@ const reducer = (state, action) => {
         ...state,
         contactsPage: !state.contactsPage,
       };
-    case reducerCases.CHANGE_CURRENT_CHAT_USER:
+    case reducerCases.CHANGE_CURRENT_CHAT_USER: {
+      let updatedUserContacts = [];
+      if (action.user) {
+        state.userContacts.map((contact) => {
+          const updatedContact =
+            contact._id === action.user._id
+              ? {
+                  ...contact,
+                  totalUnreadMessages: 0,
+                }
+              : contact;
+          updatedUserContacts.push(updatedContact);
+        });
+      } else {
+        updatedUserContacts = [...state.userContacts];
+      }
       return {
         ...state,
         currentChatUser: action.user,
+        userContacts: updatedUserContacts,
       };
+    }
     case reducerCases.SET_MESSAGES:
       return {
         ...state,
         messages: action.messages,
+      };
+    case reducerCases.UPDATE_MESSAGES:
+      const updatedMessages = state.messages.map((msg) =>
+        msg.reciever.toString() === action.from
+          ? { ...msg, messageStatus: "read" }
+          : msg
+      );
+      return {
+        ...state,
+        messages: updatedMessages,
       };
     case reducerCases.SET_SOCKET:
       return {
@@ -63,6 +90,30 @@ const reducer = (state, action) => {
       return {
         ...state,
         userContacts: action.userContacts,
+      };
+    case reducerCases.UPDATE_USER_CONTACTS:
+      let updatedUserContacts = [];
+      state.userContacts.map((contact) => {
+        const updatedContact =
+          contact._id === action.newMessage.sender
+            ? {
+                ...contact,
+                messageId: action.newMessage._id,
+                createdAt: action.newMessage.createdAt,
+                message: action.newMessage.message,
+                messageStatus: action.newMessage.messageStatus,
+                totalUnreadMessages:
+                  state.currentChatUser?._id === action.newMessage.sender
+                    ? 0
+                    : contact.totalUnreadMessages + 1,
+                type: action.newMessage.type,
+              }
+            : contact;
+        updatedUserContacts.push(updatedContact);
+      });
+      return {
+        ...state,
+        userContacts: updatedUserContacts,
       };
     case reducerCases.SET_ONLINE_USERS:
       return {
