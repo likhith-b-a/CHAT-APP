@@ -25,7 +25,7 @@ const server = app.listen(process.env.PORT, () => {
 
 const io = new Server(server, {
   cors: {
-    origin: "*",
+    origin: "https://chat-app-likhith-b-as-projects-29e9bf6a.vercel.app",
   },
 });
 
