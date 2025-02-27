@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import ChatList from "./Chatlist/ChatList";
 import Empty from "./Empty";
-import { onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged, updateCurrentUser } from "firebase/auth";
 import { firebaseAuth } from "@/utils/FirebaseConfig";
 import axios from "axios";
 import { CHECK_USER_ROUTE, GET_MESSAGES_ROUTE, HOST } from "@/utils/ApiRoutes";
@@ -28,6 +28,7 @@ function Main() {
       incomingVoiceCall,
       incomingVideoCall,
       messages,
+      userContacts,
     },
     dispatch,
   } = useStateProvider();
@@ -45,6 +46,14 @@ function Main() {
   useEffect(() => {
     if (socket.current && !socketEvent) {
       setSocketEvent(true);
+
+      socket.current.on("message-read", ({ from }) => {
+        dispatch({
+          type: reducerCases.UPDATE_MESSAGES,
+          from,
+        });
+      });
+
       socket.current.on("incoming-voice-call", ({ from, roomId, callType }) => {
         dispatch({
           type: reducerCases.SET_INCOMING_VOICE_CALL,
@@ -82,12 +91,16 @@ function Main() {
     if (!socket.current) return;
     socket.current.off("msg-recieve");
     socket.current.on("msg-recieve", (data) => {
-      if (currentChatUser?._id === data.from) {
+      dispatch({
+        type: reducerCases.UPDATE_USER_CONTACTS,
+        newMessage: data.message,
+      });
 
+      if (currentChatUser?._id === data.from) {
         socket.current.emit("read-msg", {
           message: data.message,
         });
-        
+
         dispatch({
           type: reducerCases.ADD_MESSAGE,
           newMessage: {
@@ -96,62 +109,11 @@ function Main() {
         });
       }
     });
-
-    if (currentChatUser) {
-      socket.current.emit("message-read", {
-        from: userInfo._id,
-        to: currentChatUser._id,
-      });
-    }
-  }, [currentChatUser]);
-
-  useEffect(() => {
-    if (!socket.current) return;
-    socket.current.off("message-read");
-    socket.current.on("message-read", ({ from }) => {
-      console.log("Inside listener");
-
-      const updatedMessages = messages.map((msg) =>
-        msg.reciever.toString() === from
-          ? { ...msg, messageStatus: "read" }
-          : msg
-      );
-
-      console.log(updatedMessages);
-
-      dispatch({
-        type: reducerCases.SET_MESSAGES,
-        messages: updatedMessages,
-      });
-    });
-  }, [messages]);
+  }, [socket.current, currentChatUser]);
 
   useEffect(() => {
     if (redirectLogin) router.push("/login");
   }, [redirectLogin]);
-
-  // useEffect(() => {
-  //   if (socket.current) {
-  //     console.log("📡 Listening for messages-read event...");
-
-  //     socket.current.on("message-read", ({ from }) => {
-  //       console.log(
-  //         `✅ Received "messages-read" event for messages from ${from}`
-  //       );
-
-  //       dispatch({
-  //         type: reducerCases.UPDATE_MESSAGE_STATUS,
-  //         payload: { from, status: "read" },
-  //       });
-  //     });
-  //   }
-
-  //   return () => {
-  //     if (socket.current) {
-  //       socket.current.off("message-read");
-  //     }
-  //   };
-  // }, []);
 
   useEffect(() => {
     const getMessages = async () => {
@@ -168,6 +130,12 @@ function Main() {
     };
     if (currentChatUser?._id) {
       getMessages();
+    }
+    if (currentChatUser) {
+      socket.current.emit("message-read", {
+        from: userInfo._id,
+        to: currentChatUser._id,
+      });
     }
   }, [currentChatUser]);
 

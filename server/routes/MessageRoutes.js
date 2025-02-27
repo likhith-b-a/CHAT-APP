@@ -18,20 +18,10 @@ router.route("/add-image-message").post(
   addImageMessage
 );
 
-// router.route("/add-audio-message").post(
-//   upload.fields([
-//     {
-//       name: "audio",
-//       maxCount: 1,
-//     },
-//   ]),
-//   addAudioMessage
-// );
 router.route("/add-audio-message").post(
   upload.single("audio"),
   addAudioMessage
 );
-
 
 router
   .route("/get-initial-contacts/:from")
