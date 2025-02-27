@@ -7,14 +7,12 @@ import MessageStatus from "../common/MessageStatus";
 import { FaCamera, FaMicrophone } from "react-icons/fa";
 
 function ChatLIstItem({ data, isContactsPage = false }) {
-  // console.log(data)
   const {
     state: { userInfo, currentChatUser },
     dispatch,
   } = useStateProvider();
 
   const handleContactClick = () => {
-    // if (currentChatUser?._id === data._id) {
     if (!isContactsPage) {
       dispatch({
         type: reducerCases.CHANGE_CURRENT_CHAT_USER,
@@ -24,6 +22,8 @@ function ChatLIstItem({ data, isContactsPage = false }) {
           profilePicture: data.profilePicture,
           email: data.email,
           _id: data._id,
+          isOnline: data.isOnline,
+          lastSeen: data.lastSeen
         },
       });
     } else {
@@ -33,7 +33,6 @@ function ChatLIstItem({ data, isContactsPage = false }) {
       });
       dispatch({ type: reducerCases.SET_ALL_CONTACTS_PAGE });
     }
-    // }
   };
 
   return (

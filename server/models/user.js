@@ -32,6 +32,8 @@ const userSchema = new Schema(
         ref: "Message",
       },
     ],
+    isOnline: { type: Boolean, default: false },
+    lastSeen: { type: Date, default: null },
   },
   { timestamps: true }
 );

@@ -116,6 +116,13 @@ const reducer = (state, action) => {
         userContacts: updatedUserContacts,
       };
     case reducerCases.SET_ONLINE_USERS:
+      if(state.currentChatUser){
+        if(action.onlineUsers.includes(state.currentChatUser._id)){
+          state.currentChatUser.isOnline = true;
+        }else{
+          state.currentChatUser.isOnline = false;
+        }
+      }
       return {
         ...state,
         onlineUsers: action.onlineUsers,
