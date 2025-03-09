@@ -81,7 +81,7 @@ npm run dev
 - **Make Audio/Video Calls** with ZegoCloud
 - **Share Images & Audio Messages**
 
-## API Routes (Optional)
+## API Routes
 | Method | Endpoint | Description |
 |--------|---------|-------------|
 | POST   | `/api/auth/onboard-user` | Register a new user |
@@ -93,7 +93,8 @@ npm run dev
 | POST   | `/api/messages/add-audio-message` | Upload an audio message |
 | GET   | `/api/messages/get-initial-contacts/:from` | Get the Contacts |
 
-## Screenshots (Optional)
+## Screenshots
+### On-Boarding
 ![Login Page](ScreenShots/login.png)
 
 ### Chat Interface
