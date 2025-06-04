@@ -1,6 +1,6 @@
 # Next.js Chat Application
 
-A real-time messaging application built using **Next.js**, **Node.js**, **MongoDB**, **Socket.IO**, **Firebase Authentication**, and **ZegoCloud** for seamless text, audio, and video communication.
+A real-time messaging application that enables seamless text, audio, and video communication. Built with Next.js, Node.js, and MongoDB for a robust backend, it uses Socket.IO for instant messaging. This app connects users effortlessly, making conversations smooth and engaging.
 
 ## Features
 - **Real-time Messaging** using Socket.IO
